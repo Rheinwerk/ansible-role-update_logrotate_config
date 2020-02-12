@@ -1,0 +1,24 @@
+_logrotate:
+  definitions:
+    - name: "sample-1"
+      logs:
+        - "/root/sample-file-1"
+      options:
+        - "daily"
+        - "rotate 52"
+        - "missingok"
+        - "notifempty"
+        - "compress"
+        - "delaycompress"
+    - name: "sample-2"
+      logs:
+        - "/var/log/sample-2/*.log"
+        - "/var/log/sample-2-beta/*.log"
+      options:
+        - "weekly"
+        - "copytruncate"
+      postrotate:
+        - "invoke-rc.d rsyslog rotate >/dev/null 2>&1 || true"
+      preremove: []
+      lastaction: []
+      firstaction: []

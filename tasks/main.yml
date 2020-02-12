@@ -1,0 +1,9 @@
+- name: Create logrotate configuration files
+  template:
+    src: "etc/logrotate.d/logrotate.j2"
+    dest: '/etc/logrotate.d/{{ item.name }}'
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - '{{ ( _logrotate.default_definitions|default([]) + _logrotate.definitions ) }}'
