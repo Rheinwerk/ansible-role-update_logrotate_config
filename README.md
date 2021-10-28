@@ -2,7 +2,7 @@ Configure Logrotate Jobs
 =========
 
 
-[![Build Status](https://travis-ci.org/Rheinwerk/ansible-role-update_logrotate_config.svg?branch=master)](https://travis-ci.org/Rheinwerk/ansible-role-update_logrotate_config)
+[![Build Status](https://github.com/Rheinwerk/ansible-role-update_logrotate_config/actions/workflows/ci.yml/badge.svg)](https://github.com/Rheinwerk/ansible-role-update_logrotate_config/actions/workflows/ci.yml)
 
 Requirements
 ------------
