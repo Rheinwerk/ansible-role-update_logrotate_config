@@ -1,6 +1,5 @@
 galaxy_info:
-  author: Daniel Schneller
-  namespace: rheinwerk
+  author: rheinwerk
   role_name: update_logrotate_config
   description: Adds Logrotate Configuration Files
   company: Rheinwerk
