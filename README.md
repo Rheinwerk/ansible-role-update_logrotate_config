@@ -7,14 +7,32 @@ Configure Logrotate Jobs
 Requirements
 ------------
 
-None.
+ansible-core 2.18 or newer.
 
 
 Role Variables
 --------------
 
-There is one main variable that drives this role: `_logrotate`. It is a map that contains all configuration and settings for this role.
-Please see `defaults/main.yml` for details.
+Every setting is one variable with a default in `defaults/main.yml`; set only the ones that
+differ. The defaults are the CenterDevice values.
+
+| Variable | Default |
+|---|---|
+| `_logrotate_default_definitions` | `database_shell`: daily rotation of `/home/cd-admin/.mysql_history` and `/root/.mysql_history` |
+| `_logrotate_definitions` | `[]` |
+
+The role writes one file `/etc/logrotate.d/<name>` per entry of both lists (default ones first).
+Entry keys: `name` (file name), `logs` (paths or globs), `options` (logrotate directives, one per
+line) and the optional script lists `postrotate`, `preremove`, `lastaction` and `firstaction`.
+
+The role validates both lists before it writes anything: `meta/argument_specs.yml` checks the types,
+requires `name`, `logs` and `options` and rejects unknown keys (such as `prerotate`, which the template
+does not render); `tasks/assert.yml` (tag `always`) also requires a `name` usable as a file name (no
+slash, unique across both lists), at least one absolute log path without whitespace, and single-line
+strings in `options` and the script lists.
+
+Until v0.3.0 the role took one `_logrotate` dict with the keys `default_definitions` and
+`definitions` instead.
 
 Dependencies
 ------------
@@ -25,16 +43,22 @@ None.
 Example Playbook
 ----------------
 
-The general contract of this role is to take the variables map `_logrotate` from `defaults/main.yml` as a template for your configuration and pass that configuration as a parameter to this role.
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+A host that keeps the default definitions and adds one:
 
     - hosts: servers
-      var:
-        LOGROTATE
-          ...
+      vars:
+        _logrotate_definitions:
+          - name: "pgbouncer"
+            logs:
+              - "/var/log/pgbouncer/pgbouncer.log"
+            options:
+              - "daily"
+              - "rotate 30"
+              - "missingok"
+            postrotate:
+              - "/bin/kill -HUP `cat /var/run/pgbouncer/pgbouncer.pid 2>/dev/null` 2>/dev/null || true"
       roles:
-         - { role: update_logrotate_config, tags: [ 'update_logrotate_config' ], _logrotate: "{{ LOGROTATE }}" }
+         - { role: update_logrotate_config, tags: [ 'logrotate' ] }
 
 License
 -------

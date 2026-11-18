@@ -1,3 +1,9 @@
+---
+- name: Assert
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
 - name: Create logrotate configuration files
   ansible.builtin.template:
     src: "etc/logrotate.d/logrotate.j2"
@@ -5,5 +11,6 @@
     owner: root
     group: root
     mode: "0644"
-  with_items:
-    - '{{ (_logrotate.default_definitions | default([]) + _logrotate.definitions) }}'
+  loop: "{{ _logrotate_all_definitions }}"
+  loop_control:
+    label: "{{ item.name }}"

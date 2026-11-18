@@ -1,0 +1,31 @@
+---
+# The default database_shell definition plus molecule-app from tests/vars.yml
+- name: Verify
+  hosts: all
+  become: true
+  gather_facts: false
+  vars:
+    verify_definitions:
+      - database_shell
+      - molecule-app
+  tasks:
+    - name: Read the rendered definitions
+      ansible.builtin.slurp:
+        src: "/etc/logrotate.d/{{ item }}"
+      loop: "{{ verify_definitions }}"
+      register: verify_files
+
+    - name: The definitions are rendered from the variables
+      ansible.builtin.assert:
+        that:
+          - "'/root/.mysql_history' in files[0]"
+          - "'rotate 52' in files[0]"
+          - "'/var/log/molecule-app/*.log' in files[1]"
+          - files[1] is search('postrotate\\s+/bin/true\\s+endscript')
+        fail_msg: "{{ files }}"
+      vars:
+        files: "{{ verify_files.results | map(attribute='content') | map('b64decode') | list }}"
+
+    - name: Parse the definitions with logrotate # noqa no-changed-when
+      ansible.builtin.command: "logrotate --debug /etc/logrotate.d/{{ item }}"
+      loop: "{{ verify_definitions }}"
