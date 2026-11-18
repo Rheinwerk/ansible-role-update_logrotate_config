@@ -1,0 +1,55 @@
+---
+argument_specs:
+  main:
+    short_description: Write one logrotate configuration file per definition to /etc/logrotate.d
+    options:
+      _logrotate_default_definitions:
+        type: list
+        elements: dict
+        description:
+          - Definitions every host gets, written before _logrotate_definitions.
+          - The default is the CenterDevice database_shell definition; [] skips it.
+        options: &logrotate_definition
+          name:
+            type: str
+            required: true
+            description:
+              - File name below /etc/logrotate.d, unique across both lists.
+          logs:
+            type: list
+            elements: str
+            required: true
+            description:
+              - Absolute paths or globs of the log files, one per line.
+          options:
+            type: list
+            elements: str
+            required: true
+            description:
+              - logrotate directives inside the block, one per line, see logrotate(8).
+          postrotate:
+            type: list
+            elements: str
+            description:
+              - Script lines run after rotation.
+          preremove:
+            type: list
+            elements: str
+            description:
+              - Script lines run before a log file is removed.
+          lastaction:
+            type: list
+            elements: str
+            description:
+              - Script lines run once after all matching logs are rotated.
+          firstaction:
+            type: list
+            elements: str
+            description:
+              - Script lines run once before any matching log is rotated.
+      _logrotate_definitions:
+        type: list
+        elements: dict
+        description:
+          - Host-specific definitions, same keys as _logrotate_default_definitions.
+        options: *logrotate_definition

@@ -1,0 +1,15 @@
+---
+# Keys every definition needs and the optional script lists the template renders (tasks/assert.yml)
+_logrotate_entry_keys:
+  - name
+  - logs
+  - options
+
+_logrotate_script_defaults:
+  postrotate: []
+  preremove: []
+  lastaction: []
+  firstaction: []
+
+# Both lists in the order the role writes them; tasks/assert.yml checks the types before using it
+_logrotate_all_definitions: "{{ _logrotate_default_definitions + _logrotate_definitions }}"

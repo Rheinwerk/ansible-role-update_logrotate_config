@@ -7,7 +7,7 @@ Configure Logrotate Jobs
 Requirements
 ------------
 
-None.
+ansible-core 2.18 or newer.
 
 
 Role Variables
@@ -24,6 +24,12 @@ differ. The defaults are the CenterDevice values.
 The role writes one file `/etc/logrotate.d/<name>` per entry of both lists (default ones first).
 Entry keys: `name` (file name), `logs` (paths or globs), `options` (logrotate directives, one per
 line) and the optional script lists `postrotate`, `preremove`, `lastaction` and `firstaction`.
+
+The role validates both lists before it writes anything: `meta/argument_specs.yml` checks the types,
+requires `name`, `logs` and `options` and rejects unknown keys (such as `prerotate`, which the template
+does not render); `tasks/assert.yml` (tag `always`) also requires a `name` usable as a file name (no
+slash, unique across both lists), at least one absolute log path without whitespace, and single-line
+strings in `options` and the script lists.
 
 Until v0.3.0 the role took one `_logrotate` dict with the keys `default_definitions` and
 `definitions` instead.

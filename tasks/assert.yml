@@ -1,0 +1,52 @@
+---
+- name: Assert both definition lists are lists of mappings
+  ansible.builtin.assert:
+    that:
+      - _logrotate_default_definitions is sequence
+      - _logrotate_default_definitions is not string
+      - _logrotate_default_definitions | reject('mapping') | list | length == 0
+      - _logrotate_definitions is sequence
+      - _logrotate_definitions is not string
+      - _logrotate_definitions | reject('mapping') | list | length == 0
+    fail_msg: "_logrotate_default_definitions and _logrotate_definitions must be lists of definitions ({{ _logrotate_entry_keys | join(', ') }})"
+    quiet: true
+  tags:
+    - always
+
+- name: Assert every definition has a file name, absolute log paths and string lines
+  ansible.builtin.assert:
+    that:
+      - _logrotate_entry_keys | difference(item.keys()) | length == 0
+      - item.name is string
+      - item.name is match('^[A-Za-z0-9_][A-Za-z0-9_.-]*\\Z')
+      - _logrotate_lines | reject('sequence') | list | length == 0
+      - _logrotate_lines | select('string') | list | length == 0
+      - _logrotate_lines | map('reject', 'string') | map('list') | select | list | length == 0
+      - _logrotate_lines | flatten | select('search', '\\n') | list | length == 0
+      - item.logs | length > 0
+      - item.logs | reject('match', '^/\\S+\\Z') | list | length == 0
+    fail_msg: >-
+      {{ item.name | default(item) }}: a definition needs name (a file name, no slash), logs (at least one absolute path
+      without whitespace) and options, each a list of single-line strings; {{ _logrotate_script_defaults.keys() | join(', ') }}
+      are optional lists of single-line strings
+    quiet: true
+  vars:
+    # logs, options and every script list, missing scripts as []
+    _logrotate_lines: "{{ [item.logs, item.options] + _logrotate_script_defaults.keys() | map('extract', _logrotate_script_defaults | combine(item)) | list }}"
+  loop: "{{ _logrotate_all_definitions }}"
+  loop_control:
+    label: "{{ item.name | default('?') }}"
+  tags:
+    - always
+
+# Two definitions with the same name would write the same file, the later one silently winning
+- name: Assert the definition names are unique
+  ansible.builtin.assert:
+    that:
+      - _logrotate_names | unique | length == _logrotate_names | length
+    fail_msg: "Definition names must be unique across both lists: {{ _logrotate_names | join(', ') }}"
+    quiet: true
+  vars:
+    _logrotate_names: "{{ _logrotate_all_definitions | map(attribute='name') | list }}"
+  tags:
+    - always

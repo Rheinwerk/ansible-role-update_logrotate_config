@@ -1,0 +1,13 @@
+---
+# A host-specific definition with a script on top of the default database_shell definition
+_logrotate_definitions:
+  - name: "molecule-app"
+    logs:
+      - "/var/log/molecule-app/*.log"
+    options:
+      - "weekly"
+      - "rotate 4"
+      - "missingok"
+      - "sharedscripts"
+    postrotate:
+      - "/bin/true"
